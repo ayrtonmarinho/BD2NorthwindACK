@@ -1,0 +1,258 @@
+GO
+SELECT *
+FROM Customers
+
+GO
+create procedure proc_searchClientName
+@nome varchar(50)
+as
+select *
+from Customers
+where CompanyName like '%' + @nome + '%'
+
+
+GO
+create procedure proc_searchClientID
+@ID varchar(50)
+as
+select *
+from Customers
+where CustomerID = @ID
+
+GO
+CREATE PROCEDURE proc_insertClient
+@ID nchar(5), @Company nvarchar(40), @ContactName nvarchar(30), @COntactTitle nvarchar(40), @Adress nvarchar(80), @City nvarchar(40), @Region nvarchar(40), @PostalCode nvarchar(40), @Country nvarchar(40), @Phone nvarchar(40), @Fax nvarchar(40)
+as
+
+INSERT INTO Customers
+(CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax)
+VALUES
+(@ID, @Company, @ContactName, @ContactTitle, @Adress, @City, @Region, @PostalCode, @Country, @Phone, @Fax)
+
+
+GO
+create procedure proc_deleteClient
+@ID nchar(5)
+as
+delete from Customers where CustomerID = @ID
+
+GO
+CREATE TRIGGER deleteCLiente
+ON Customers for DELETE
+AS
+if EXISTS (
+	SELECT d.CustomerID
+	FROM deleted D
+	WHERE d.CustomerID IN (
+			SELECT D.CustomerID
+			FROM deleted D JOIN Orders O
+			on D.CustomerID = O.CustomerID
+			)
+
+    )
+
+begin
+	PRINT ('Não é possível realizar operação. Cliente tem pedidos no arquivo')
+	ROLLBACK TRANSACTION
+end
+
+
+GO
+create procedure proc_AttClientName
+@ID nchar(5),@ContactName nvarchar(30), @ContactTitle nvarchar(40), @Address nvarchar(80), @City nvarchar(40), @Region nvarchar(40), @PostalCode nvarchar(40), @Country nvarchar(40), @Phone nvarchar(40), @Fax nvarchar(40)
+as
+Update Customers 
+SET ContactName = @ContactName,
+	ContactTitle = @ContactTitle,
+	Address = @Address,
+	City = @City,
+	Region = @Region,
+	PostalCode = @PostalCode,
+	Country = @Country,
+	Phone = @Phone,
+	Fax = @Fax
+WHERE CustomerID = @ID
+
+GO
+CREATE PROCEDURE proc_lookAllOrdersDetails
+as
+SELECT OD.OrderID, P.ProductID, P.ProductName, OD.Quantity, OD.UnitPrice, OD.Discount, C.CompanyName AS 'Cliente', E.FirstName + E.LastName AS 'Vendedor'
+FROM [Order Details] OD JOIN Orders O ON O.OrderID = OD.OrderID
+	JOIN Customers C ON O.CustomerID = C.CustomerID 
+	JOIN Products P ON OD.ProductID = P.ProductID
+	Full JOIN Employees E ON O.EmployeeID = E.EmployeeID
+ 
+	CREATE PROCEDURE proc_lookAllThingsAboutOrder
+as
+SELECT *
+FROM [Order Details] OD JOIN Orders O ON O.OrderID = OD.OrderID
+	JOIN Customers C ON O.CustomerID = C.CustomerID 
+	JOIN Products P ON OD.ProductID = P.ProductID
+	Full JOIN Employees E ON O.EmployeeID = E.EmployeeID
+
+GO
+CREATE PROCEDURE proc_searchOrder
+@ID varchar(50)
+as
+SELECT OD.OrderID, P.ProductID, P.ProductName, OD.Quantity, OD.UnitPrice, OD.Discount, C.CompanyName AS 'Cliente', E.FirstName + E.LastName AS 'Vendedor'
+FROM [Order Details] OD JOIN Orders O ON O.OrderID = OD.OrderID
+	JOIN Customers C ON O.CustomerID = C.CustomerID 
+	JOIN Products P ON OD.ProductID = P.ProductID
+	Full JOIN Employees E ON O.EmployeeID = E.EmployeeID
+where OD.OrderID = @ID
+
+GO
+CREATE PROCEDURE proc_insertOrder
+@OrderID int, @CustomerID nchar(5), @EmployeeID int, @OrderDate datetime
+as
+ 
+INSERT INTO Orders
+(OrderID, CustomerID, EmployeeID, OrderDate)
+VALUES
+(@OrderID, @CustomerID, @EmployeeID, @OrderDate)
+ 
+GO
+CREATE PROCEDURE proc_insertOrderDetails
+@OrderID int identity, @Product int, @Price money, @Quant smallint, @Disc real
+as
+ 
+INSERT INTO [Order Details]
+(OrderID, ProductID, UnitPrice, Quantity, Discount)
+VALUES
+(@OrderID, @Product, @Price, @Quant, @Disc)
+ 
+ 
+GO
+CREATE TRIGGER tg_Orders
+ON [Order Details] for INSERT, UPDATE
+AS
+if inserted.OrderID NOT IN (SELECT OrderID
+					FROM Orders)
+BEGIN
+	ROLLBACK TRANSACTION
+	PRINT ('Necessário cadastrar pedido primeiro') 
+END
+if (Products.UnitsInStock - inserted.Quantity) <0
+	begin 
+	ROLLBACK TRANSACTION
+	PRINT ('Estoque insuficiente do produto' + inserted.ProductID) 
+	end
+	UPDATE Products set Products.UnitsInStock = (Products.UnitsInStock - inserted.Quantity)
+	where Products.ProductID = inserted.ProductId
+ 
+END
+ 
+ 
+	END
+
+GO
+CREATE TRIGGER tg_OrdersDel
+ON [Order Details] for DELETE
+AS
+	UPDATE Products set Products.UnitsInStock = (Products.UnitsInStock + deleted.Quantity)
+	where Products.ProductID = deleted.ProductId
+
+GO
+CREATE PROCEDURE proc_TotalData
+@beginDate datetime, @finalDate datetime
+AS
+SELECT (E.FirstName + ' ' + E.LastName) AS EMPREGADO, COUNT(O.EmployeeID) AS TOTAL
+FROM Employees E JOIN Orders O
+	ON E.EmployeeID = O.EmployeeID
+WHERE O.OrderDate >= @beginDate AND OrderDate < @finalDate
+GROUP BY (E.FirstName + ' ' + E.LastName)
+
+
+GO
+CREATE TRIGGER dezProdutos
+ON [Order Details] for INSERT
+AS
+if inserted.OrderId IN (
+	SELECT O.OrderID, o.ProductID
+	FROM [Order Details] O
+	GROUP BY O.OrderID, o.ProductID
+	HAVING COUNT (O.OrderID) >10 
+    )
+
+begin
+	PRINT ('Pedido excessivamente longo. Compra pode ter apenas dez produtos')
+	ROLLBACK TRANSACTION
+end
+
+
+GO
+CREATE TRIGGER duplicateClient
+ON Customers for INSERT
+AS
+IF EXISTS(
+	SELECT I.CompanyName, I.CustomerID
+	FROM inserted I 
+		JOIN Customers C
+		ON i.CompanyName = C.CompanyName
+	WHERE I.CustomerID = C.CustomerID
+	)
+begin
+	PRINT ('Não é possível inserir. Cliente já existe.')
+	ROLLBACK TRANSACTION
+end
+
+GO
+CREATE PROCEDURE proc_AllProducts
+As
+SELECT P.ProductID, P.ProductName, C.CategoryName, S.CompanyName, P.UnitPrice, P.UnitsInStock, C.Description
+FROM
+Products P join Categories C
+ON P.CategoryID = C.CategoryID 
+join Suppliers S
+ON S.SupplierID = P.SupplierID
+
+GO
+CREATE PROCEDURE proc_ListarEmpregados
+AS
+SELECT EmployeeID, FirstName+' '+LastName AS Name 
+FROM Employees;
+
+GO
+CREATE TRIGGER deleteCLiente
+ON Customers for DELETE
+AS
+if EXISTS (
+    SELECT d.CustomerID
+    FROM deleted D
+    WHERE d.CustomerID IN (
+            SELECT D.CustomerID
+            FROM deleted D JOIN Orders O
+            on D.CustomerID = O.CustomerID
+            )
+
+    )
+
+begin
+    PRINT ('Não é possível realizar operação. Cliente tem pedidos no arquivo')
+    ROLLBACK TRANSACTION
+end
+
+USE [Northwind]
+GO
+/****** Object:  StoredProcedure [dbo].[proc_lastOrderID]    Script Date: 09/05/2022 03:20:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[proc_lastOrderID]
+AS
+Select TOP 1 O.OrderID
+FROM Orders O
+Order by O.OrderID DESC
+
+USE [Northwind]
+GO
+/****** Object:  StoredProcedure [dbo].[proc_ListarEmpregados]    Script Date: 09/05/2022 03:21:45 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[proc_ListarEmpregados]
+AS
+SELECT EmployeeID, FirstName+' '+LastName AS Name 
+FROM Employees;
