@@ -14,6 +14,7 @@ import model.OrderSimple;
 import model.PedidosView;
 import model.ProductCart;
 import model.ProductView;
+import model.Relatorio;
 
 /**
  *
@@ -295,13 +296,13 @@ public class Conexao {
         try {
             Conexao.conectar();
             CallableStatement callStm = null;
-            String sql = "{ CALL dbo.proc_insertOrder(?,?,?,?)}";
+            String sql = "{ CALL dbo.proc_insertOrder(?,?,?)}";
             callStm = conexao.prepareCall(sql);
 
-            callStm.setInt(1, 0);
-            callStm.setString(2, pc.getCustomerID());
-            callStm.setInt(3, pc.getEmployeeID());
-            callStm.setDate(4, pc.getOrderDate());
+            
+            callStm.setString(1, pc.getCustomerID());
+            callStm.setInt(2, pc.getEmployeeID());
+            callStm.setDate(3, pc.getOrderDate());
             callStm.execute();
 
             Conexao.desconectar();
@@ -346,7 +347,7 @@ public class Conexao {
         try {
             Conexao.conectar();
             CallableStatement callStm = null;
-            String sql = "{ CALL dbo.proc_lastOrderID";
+            String sql = "{ CALL dbo.proc_lastOrderID}";
             callStm = conexao.prepareCall(sql);
             callStm.execute();
             ResultSet rs = callStm.getResultSet();
@@ -382,6 +383,36 @@ public class Conexao {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
+    
+    public static ArrayList<Relatorio> getRelatorio( Date inicio, Date fim) {
+        try {
+            
+                Conexao.conectar();
+                CallableStatement callStm = null;
+                String sql = "{ CALL dbo.proc_TotalData(?,?)}";
+                callStm = conexao.prepareCall(sql);
+
+                callStm.setDate(1, inicio);
+                callStm.setDate(2, fim);
+                callStm.execute();
+                ResultSet rs = callStm.getResultSet();
+                ArrayList<Relatorio> rel = new ArrayList<>();
+                while(rs.next()){
+                    Relatorio r = new Relatorio();
+                    r.setNome(rs.getString("Empregado"));
+                    r.setQtd(rs.getInt("Total"));
+                    rel.add(r);
+                }
+                Conexao.desconectar();
+            
+
+            return rel;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return null;
     }
 

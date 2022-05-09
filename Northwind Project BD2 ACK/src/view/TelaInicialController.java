@@ -7,6 +7,7 @@ package view;
 
 import java.net.URL;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -24,6 +25,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
@@ -45,6 +47,7 @@ import model.PedidosView;
 import model.ProductCart;
 import model.ProductView;
 import model.Produto;
+import model.Relatorio;
 import utilities.AliasID;
 import utilities.Conexao;
 
@@ -56,6 +59,10 @@ import utilities.Conexao;
 public class TelaInicialController implements Initializable {
 
     //ListView
+    private LocalDate inicio, fim;
+    
+    @FXML
+    private DatePicker d1, d2;
     //Spinners
     @FXML
     private Spinner<Integer> increase;
@@ -63,117 +70,124 @@ public class TelaInicialController implements Initializable {
     //Buttons
     @FXML
     private Button mCliente;
-
+    
     @FXML
     private Button btComprar;
-
+    
     @FXML
     private Button mVendas;
-
+    
     @FXML
     private Button mProdutos;
-
+    
     @FXML
     private Button mRelatorios;
-
+    
     @FXML
     private Button btBuscarCliente;
-
+    
     @FXML
     private Button btExibirPedidos;
-
+    
     @FXML
     private Button exitButton;
 
     //Vbox
     @FXML
     private VBox visualizar;
-
+    
     @FXML
     private VBox vendas;
-
+    
     @FXML
     private VBox relatorios;
-
+    
     @FXML
     private VBox exibirUser;
-
+    
     @FXML
     private VBox editarC;
-
+    
     @FXML
     private VBox cadastrarC;
-
+    
     @FXML
     private VBox exibirPedidos;
-
+    
     @FXML
     private VBox fPedidos;
 
     //Text
     @FXML
     private Text welcome;
-
+    
     @FXML
     private Text eCompanyID;
-
+    
     @FXML
     private Text eCompanyName;
-
+    
     @FXML
     private Text eContactName;
-
+    
     @FXML
     private Text eTitleName;
-
+    
     @FXML
     private Text eAddress;
-
+    
     @FXML
     private Text eCity;
-
+    
     @FXML
     private Text eRegion;
-
+    
     @FXML
     private Text eCountry;
-
+    
     @FXML
     private Text ePostalCode;
-
+    
     @FXML
     private Text ePhone;
-
+    
     @FXML
     private Text eFax;
 
     //Text Produtos
     @FXML
     private Text vProductID;
-
+    
     @FXML
     private Text vProductName;
-
+    
     @FXML
     private Text vDesc;
-
+    
     @FXML
     private Text vCategory;
-
+    
     @FXML
     private Text vUnitStock;
-
+    
     @FXML
     private Text vPrice;
-
+    
     @FXML
     private Text vSupplier;
-
+    
     @FXML
     private Text vCompanyName;
-
+    
     @FXML
     private Text vCompanyID;
+
+    //Text pedidos fechados
+    @FXML
+    private Text pfCompanyID;
+    
+    @FXML
+    private Text pfCompanyName;
 
     //TextFields
     @FXML
@@ -182,170 +196,183 @@ public class TelaInicialController implements Initializable {
     // TextField: Cadastrar Cliente
     @FXML
     private Text cCompanyID;
-
+    
     @FXML
     private TextField cCompanyName;
-
+    
     @FXML
     private TextField cContactName;
-
+    
     @FXML
     private TextField cTitleName;
-
+    
     @FXML
     private TextField cAddress;
-
+    
     @FXML
     private TextField cCity;
-
+    
     @FXML
     private TextField cRegion;
-
+    
     @FXML
     private TextField cCountry;
-
+    
     @FXML
     private TextField cPostalCode;
-
+    
     @FXML
     private TextField cPhone;
-
+    
     @FXML
     private TextField cFax;
 
     //TextField: Editar Cliente
     @FXML
     private Text aCompanyID;
-
+    
     @FXML
     private TextField aCompanyName;
-
+    
     @FXML
     private TextField aContactName;
-
+    
     @FXML
     private TextField aTitleName;
-
+    
     @FXML
     private TextField aAddress;
-
+    
     @FXML
     private TextField aCity;
-
+    
     @FXML
     private TextField aRegion;
-
+    
     @FXML
     private TextField aCountry;
-
+    
     @FXML
     private TextField aPostalCode;
-
+    
     @FXML
     private TextField aPhone;
-
+    
     @FXML
     private TextField aFax;
 
     //Radio Buttons
     @FXML
     private RadioButton radioNome;
-
+    
     @FXML
     private RadioButton radioID;
-
+    
     @FXML
     private ToggleGroup toggleBusca;
 
     //Listas
     @FXML
     private ObservableList<Cliente> clientes = FXCollections.observableArrayList();
-
+    
     @FXML
     private ObservableList<Empregado> vendedores = FXCollections.observableArrayList();
-
+    
     @FXML
     private ObservableList<ProductCart> cart = FXCollections.observableArrayList();
-
+    
     @FXML
     private ObservableList<PedidosView> pedidos = FXCollections.observableArrayList();
-
+    
     @FXML
     private ObservableList<ProductView> products = FXCollections.observableArrayList();
+    
+    @FXML
+    private ObservableList<Relatorio> vrelatorios = FXCollections.observableArrayList();
 
     //Table Clientes
     @FXML
     private TableView<Cliente> tableClientes;
-
+    
     @FXML
     private TableColumn<Cliente, String> colNomeCliente;
-
+    
     @FXML
     private TableColumn<Cliente, String> colIDCliente;
 
     //Table Pedidos
     @FXML
     private TableView<PedidosView> tableOrdersView;
-
+    
     @FXML
     private TableColumn<PedidosView, Integer> colOrderID;
-
+    
     @FXML
     private TableColumn<PedidosView, Integer> colProductID;
-
+    
     @FXML
     private TableColumn<PedidosView, String> colProductName;
-
+    
     @FXML
     private TableColumn<PedidosView, String> colOClienteName;
-
+    
     @FXML
     private TableColumn<PedidosView, String> colEmployee;
-
+    
     @FXML
     private TableColumn<PedidosView, Integer> colOQtd;
-
+    
     @FXML
     private TableColumn<PedidosView, Float> colOPrice;
-
+    
     @FXML
     private TableColumn<PedidosView, Float> colDiscount;
 
     //Table Products
     @FXML
     private TableView<ProductView> vTableProduct;
-
+    
     @FXML
     private TableColumn<ProductView, Integer> vColProductID;
-
+    
     @FXML
     private TableColumn<ProductView, String> vColProductName;
-
+    
     @FXML
     private TableColumn<ProductView, Integer> vColUnitStock;
 
     //Table Cart
     @FXML
     private TableView<ProductCart> cartTable;
-
+    
     @FXML
     private TableColumn<ProductCart, String> colCartProduto;
-
+    
     @FXML
     private TableColumn<ProductCart, Float> colCartPrice;
-
+    
     @FXML
     private TableColumn<ProductCart, Integer> colCartQtd;
 
     //Table empregados
     @FXML
     private TableView<Empregado> tableEmpregado;
-
+    
     @FXML
     private TableColumn<Empregado, Integer> empregadoID;
-
+    
     @FXML
     private TableColumn<Empregado, String> nomeEmpregado;
+
+    //Relatorio
+    @FXML
+    private TableView<Relatorio> tableRelatorio;
+    
+    @FXML
+    private TableColumn<Relatorio, String> nome;
+    
+    @FXML
+    private TableColumn<Relatorio, Integer> qtdRelatorio;
 
     /**
      * Initializes the controller class.
@@ -391,13 +418,17 @@ public class TelaInicialController implements Initializable {
         colCartProduto.setCellValueFactory(new PropertyValueFactory<ProductCart, String>("productName"));
         colCartPrice.setCellValueFactory(new PropertyValueFactory<ProductCart, Float>("unitPrice"));
         colCartQtd.setCellValueFactory(new PropertyValueFactory<ProductCart, Integer>("qtd"));
-        
+
         //Inicializar cart
         nomeEmpregado.setCellValueFactory(new PropertyValueFactory<Empregado, String>("nome"));
         empregadoID.setCellValueFactory(new PropertyValueFactory<Empregado, Integer>("employeeID"));
-        
+
+        //Inicializar rel
+        nome.setCellValueFactory(new PropertyValueFactory<Relatorio, String>("nome"));
+        qtdRelatorio.setCellValueFactory(new PropertyValueFactory<Relatorio, Integer>("qtd"));
 
         //last to load
+        tableRelatorio.setItems(vrelatorios);
         cartTable.setItems(cart);
         vTableProduct.setItems(products);
         tableOrdersView.setItems(pedidos);
@@ -407,21 +438,23 @@ public class TelaInicialController implements Initializable {
         tableEmpregado.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         tableClientes.setPlaceholder(new Label("Nenhuma busca executada"));
         tableEmpregado.setItems(vendedores);
-
+        
         vTableProduct.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<ProductView>() {
-
+            
             @Override
             public void changed(ObservableValue<? extends ProductView> observable, ProductView oldValue, ProductView newValue) {
-                vProductID.setText(String.valueOf(newValue.getProductID()));
-                vProductName.setText(newValue.getProductName());
-                vDesc.setText(newValue.getDesc());
-                vCategory.setText(newValue.getCategoryName());
-                vUnitStock.setText(String.valueOf(newValue.getQtd()));
-                vPrice.setText(String.valueOf(newValue.getPrice()));
-                vSupplier.setText(newValue.getSupplier());
+                if (!products.isEmpty()) {
+                    vProductID.setText(String.valueOf(newValue.getProductID()));
+                    vProductName.setText(newValue.getProductName());
+                    vDesc.setText(newValue.getDesc());
+                    vCategory.setText(newValue.getCategoryName());
+                    vUnitStock.setText(String.valueOf(newValue.getQtd()));
+                    vPrice.setText(String.valueOf(newValue.getPrice()));
+                    vSupplier.setText(newValue.getSupplier());
+                }
             }
         });
-
+        
     }
 
     // Botão Clientes
@@ -480,7 +513,7 @@ public class TelaInicialController implements Initializable {
             System.out.println("ID!! OK");
             clientes = FXCollections.observableArrayList(Conexao.selectCustomerByID(textFieldBuscaClientes.getText()));
         }
-
+        
     }
 
     //Uteis default;
@@ -512,7 +545,7 @@ public class TelaInicialController implements Initializable {
         cadastrarC.setVisible(true);
         visualizar.setVisible(false);
     }
-
+    
     public void allInvisible() {
         exibirUser.setVisible(false);
         editarC.setVisible(false);
@@ -524,8 +557,14 @@ public class TelaInicialController implements Initializable {
     public void clearAllLists() {
         clientes.clear();
         pedidos.clear();
+        vendedores.clear();
+        cart.clear();
+        products.clear();
+        cartTable.setItems(cart);
+        vTableProduct.setItems(products);
         tableOrdersView.setItems(pedidos);
         tableClientes.setItems(clientes);
+        
     }
 
     //Exibir Cliente
@@ -548,19 +587,19 @@ public class TelaInicialController implements Initializable {
             ePostalCode.setText(c.getPostalCode());
             ePhone.setText(c.getPhone());
             eFax.setText(c.getFax());
-
+            
         } else {
             aviso.setTitle("");
             aviso.setContentText("Você não selecionou um Cliente.");
             aviso.showAndWait();
         }
     }
-
+    
     public void eVoltar() {
         exibirUser.setVisible(false);
         visualizar.setVisible(true);
         clearAllLists();
-
+        
     }
 
     // Inserir Cliente
@@ -643,7 +682,7 @@ public class TelaInicialController implements Initializable {
             aviso.showAndWait();
         }
     }
-
+    
     public void goEditarCliente() {
         Alert aviso;
         aviso = new Alert(AlertType.WARNING);
@@ -663,7 +702,7 @@ public class TelaInicialController implements Initializable {
             aPostalCode.setText(c.getPostalCode());
             aPhone.setText(c.getPhone());
             aFax.setText(c.getFax());
-
+            
         } else {
             aviso.setTitle("");
             aviso.setContentText("Você não selecionou um Cliente.");
@@ -689,7 +728,7 @@ public class TelaInicialController implements Initializable {
                 aviso.setTitle("");
                 aviso.setContentText("O cliente " + c.getCompanyName() + " não pode ser removido.");
             }
-
+            
         } else {
             aviso.setTitle("");
             aviso.setContentText("Você não selecionou um Cliente.");
@@ -699,7 +738,7 @@ public class TelaInicialController implements Initializable {
 
     // Validar Campos de Cliente
     public boolean validarCamposCliente(TextField companyName, TextField contactName, TextField titleName, TextField address, TextField country, TextField phone, TextField postalCode) {
-
+        
         if (companyName.getText().isEmpty()) {
             return false;
         } else if (contactName.getText().isEmpty()) {
@@ -715,10 +754,10 @@ public class TelaInicialController implements Initializable {
         } else if (postalCode.getText().length() > 10) {
             return false;
         }
-
+        
         return true;
     }
-
+    
     public void buscarPedidos() {
         pedidos = FXCollections.observableArrayList(Conexao.selectAllOrders());
     }
@@ -732,7 +771,7 @@ public class TelaInicialController implements Initializable {
         if (resposta.get() == ButtonType.OK) {
             System.exit(0);
         }
-
+        
     }
 
     //Comprar
@@ -754,7 +793,7 @@ public class TelaInicialController implements Initializable {
             aviso.setContentText("Você não selecionou um Cliente.");
             aviso.showAndWait();
         }
-
+        
     }
 
     //Inserir no carrinho
@@ -776,10 +815,9 @@ public class TelaInicialController implements Initializable {
                 c.setUnitPrice(p.getPrice());
                 c.setDiscount(0);
                 cart.add(c);
-               
-
+                
             }
-
+            
         } else {
             aviso.setTitle("");
             aviso.setContentText("Você não selecionou um Produto.");
@@ -825,35 +863,62 @@ public class TelaInicialController implements Initializable {
             fPedidos.setVisible(true);
             vendedores = FXCollections.observableArrayList(Conexao.selectEmpregados());
             tableEmpregado.setItems(vendedores);
-
+            Cliente c = tableClientes.getSelectionModel().getSelectedItem();
+            pfCompanyName.setText(c.getCompanyName());
+            pfCompanyID.setText(c.getCustomerID());
+            
         } else {
             aviso.setTitle("");
             aviso.setContentText("Não há produtos no carrinho.");
             aviso.showAndWait();
         }
     }
-    
-    
 
     //Pedidos Confr tela
     public void confirmarPedido() {
-            int userSelected = tableEmpregado.getSelectionModel().getSelectedIndex();
-            Empregado e = tableEmpregado.getSelectionModel().getSelectedItem();
-            Cliente c = tableClientes.getSelectionModel().getSelectedItem();
-            if (userSelected >= 0) {
-                OrderSimple order = new OrderSimple();
-                ArrayList<ProductCart> lista = new ArrayList<>();
-                for(ProductCart p: cart){
-                    lista.add(p);
-                }
-                order.setOrder(lista);
-                order.setEmployeeID(e.getEmployeeID());
-                Date data = new Date(System.currentTimeMillis());
-                order.setOrderDate(data);
-                order.setCustomerID(c.getCustomerID());
-                
+        Alert aviso;
+        Alert info;
+        info = new Alert(AlertType.INFORMATION);
+        aviso = new Alert(AlertType.WARNING);
+        int userSelected = tableEmpregado.getSelectionModel().getSelectedIndex();
+        Empregado e = tableEmpregado.getSelectionModel().getSelectedItem();
+        Cliente c = tableClientes.getSelectionModel().getSelectedItem();
+        if (userSelected >= 0) {
+            OrderSimple order = new OrderSimple();
+            ArrayList<ProductCart> lista = new ArrayList<>();
+            for (ProductCart p : cart) {
+                lista.add(p);
             }
+            order.setOrder(lista);
+            order.setEmployeeID(e.getEmployeeID());
+            Date data = new Date(System.currentTimeMillis());
+            order.setOrderDate(data);
+            order.setCustomerID(c.getCustomerID());
+            boolean resultado = Conexao.inserirOrder(order);
+            if (resultado) {
+                info.setTitle("");
+                info.setContentText("Order inserida");
+                info.showAndWait();
+                setInvisibleAllMenu();
+                clearAllLists();
+                
+            } else {
+                aviso.setTitle("Error");
+                setInvisibleAllMenu();
+                clearAllLists();
+            }
+            
+        }
     }
 
+    //Relatorio
+    public void relatorio() {
+        
+        Date a = Date.valueOf(d1.getValue());
+        Date b = Date.valueOf(d2.getValue());
+        vrelatorios = FXCollections.observableArrayList(Conexao.getRelatorio(a, b));
+        tableRelatorio.setItems(vrelatorios);
+        
+    }
     
 }
